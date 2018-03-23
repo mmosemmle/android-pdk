@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.net.Uri;
 import android.os.Build;
@@ -157,8 +158,25 @@ public class PDKClient {
         saveAccessToken(null);
         saveScopes(null);
     }
+
+    public static boolean checkAppNumber(Context context, String clientId) {
+        Intent testIntent = new Intent(Intent.ACTION_VIEW);
+        testIntent.setData(Uri.parse("pdk" + clientId + "://"));
+        PackageManager pm = context.getPackageManager();
+        List<ResolveInfo> activities = pm.queryIntentActivities(testIntent, 0);
+        if (activities.size() == 0) {
+            throw new IllegalStateException("No app responding to the Intent, please check the manifest to make sure the intent filter is set up properly.");
+        }
+        if (activities.size() != 1) return false;
+        return true;
+    }
+
     public void login (final Context context, final List<String> permissions, final PDKCallback callback) {
         _authCallback = callback;
+        if (!checkAppNumber(_context, _clientId)) {
+            if (callback != null) callback.onFailure(new PDKException("Unable to login because multiple apps are responding to the login request."));
+            return;
+        }
         if (Utils.isEmpty(permissions)) {
             if (callback != null) callback.onFailure(new PDKException("Scopes cannot be empty"));
             return;
