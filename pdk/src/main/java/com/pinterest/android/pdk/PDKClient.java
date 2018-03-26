@@ -159,7 +159,7 @@ public class PDKClient {
         saveScopes(null);
     }
 
-    public static boolean checkAppNumber(Context context, String clientId) {
+    private static boolean checkAppNumber(Context context, String clientId) {
         Intent testIntent = new Intent(Intent.ACTION_VIEW);
         testIntent.setData(Uri.parse("pdk" + clientId + "://"));
         PackageManager pm = context.getPackageManager();
@@ -173,8 +173,8 @@ public class PDKClient {
 
     public void login (final Context context, final List<String> permissions, final PDKCallback callback) {
         _authCallback = callback;
-        if (!checkAppNumber(_context, _clientId)) {
-            if (callback != null) callback.onFailure(new PDKException("Unable to login because multiple apps are responding to the login request."));
+        if (!checkAppNumber(context, _clientId)) {
+            if (callback != null) callback.onFailure(new PDKException("Unable to log in because multiple apps are responding to the login request."));
             return;
         }
         if (Utils.isEmpty(permissions)) {
